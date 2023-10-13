@@ -7,10 +7,10 @@ namespace Fake
         static bool exitSystem = false;
 
 
-        # if WINDOWS
+#if _WIN
         [DllImport("Kernel32")]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
-        
+
         private delegate bool EventHandler(CtrlType sig);
 
         static EventHandler? _handler;
@@ -35,7 +35,7 @@ namespace Fake
             Environment.Exit(-1);
             return true;
         }
-        #endif
+#endif
 
         public class Options
         {
@@ -44,21 +44,31 @@ namespace Fake
         }
         public static void Main(string[] args)
         {
-            #if WINDOWS
+            var count = 5;
+#if _WIN
             _handler += new EventHandler(Handler);
             SetConsoleCtrlHandler(_handler, true);
-            #endif
+#endif
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(o =>
             {
-                Program p = new Program();
+                Program p = new();
                 p.Run(o);
             }).WithNotParsed(Err);
 
-            while(!exitSystem) {
-                #if !WINDOWS
+            while (!exitSystem && count > 0)
+            {
+#if !_WIN
                 exitSystem = true; // just a hack for now, normally you would have a handler here.
-                #endif
+#endif
                 Thread.Sleep(500);
+                if (count-- == 1)
+                {
+                    Console.WriteLine("Exiting now!");
+                }
+                else
+                {
+                    Console.WriteLine($"Waiting for interruption... {count}");
+                }
             }
         }
         public void Run(Options opt)
@@ -68,7 +78,7 @@ namespace Fake
                 for (int i = 0; i < opt.Count; i++)
                 {
                     Console.WriteLine($"Hi there! at {i + 1}...");
-                    Thread.Sleep(3000);
+                    Thread.Sleep(2000);
                 }
             });
             work.Start();
