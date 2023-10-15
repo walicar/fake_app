@@ -11,4 +11,12 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="./stub.cs" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <DefineConstants>_WIN</DefineConstants>
+  </PropertyGroup>
+
 </Project>
