@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "fake_app": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
