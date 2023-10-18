@@ -4,7 +4,7 @@
 
 ## Usage
 Change directory into project folder
-- Run console app: `dotnet run [count]`
+- Run console app: `dotnet run <count> [-f filename.txt]`
 - Build console app .exe: `dotnet publish -c Release -r win-x64 --self-contained true`
 - Build console app bin: `dotnet publish -c Release -r linux-x64 --self-contained true`
 
