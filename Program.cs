@@ -41,6 +41,8 @@ namespace Fake
         {
             [Value(0, Required = true, MetaName = "count", HelpText = "How many times I will say hello")]
             public int Count { get; set; }
+            [Option('f', "file" ,Required = false, MetaValue = "file", HelpText = "Input file to be processed")]
+            public string? InputFile {get; set;}
         }
         public static void Main(string[] args)
         {
@@ -61,7 +63,7 @@ namespace Fake
                 exitSystem = true; // just a hack for now, normally you would have a handler here.
 #endif
                 Thread.Sleep(500);
-                if (count-- == 1)
+                if (count-- == 1 || exitSystem)
                 {
                     Console.WriteLine("Exiting now!");
                 }
@@ -73,6 +75,12 @@ namespace Fake
         }
         public void Run(Options opt)
         {
+            Thread create = new (() => CreateFile(opt.Count));
+            if (!string.IsNullOrEmpty(opt.InputFile)) {
+                Thread process = new (() => ProcessFile(opt.InputFile));
+                process.Start();
+            }
+            create.Start();
             Thread work = new(() =>
             {
                 for (int i = 0; i < opt.Count; i++)
@@ -84,6 +92,24 @@ namespace Fake
             work.Start();
             work.Join();
             Console.WriteLine("Done!");
+        }
+
+        public void ProcessFile(string filename) {
+            Console.WriteLine($"Attempting to process file {filename}");
+            string path = Path.Combine(Environment.CurrentDirectory, filename);
+            try {
+                string content = File.ReadAllText(path);
+                Console.WriteLine($"Read content: {content}");
+            } catch (Exception e) {
+                Console.WriteLine($"An Error Occured: {e.Message}");
+            }
+        }
+
+        public void CreateFile(int num) {
+            string path = Path.Combine(Environment.CurrentDirectory, "appoutput.txt");
+            string content = $"LOG: Had to say hello {num} times.";
+            File.WriteAllText(path, content);
+            Console.WriteLine($"Wrote appoutput.txt to {path}");
         }
 
         public static void Err(IEnumerable<Error> errs)
