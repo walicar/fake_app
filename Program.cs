@@ -1,5 +1,17 @@
 ﻿using CommandLine;
+using System.Text.Json;
 using System.Runtime.InteropServices;
+using Microsoft.VisualBasic;
+
+public class AppInput
+{
+    public int UserId { get; set; }
+    public string? UserName { get; set; }
+
+    public Dictionary<string, dynamic>? Extra { get; set; }
+
+}
+
 namespace Fake
 {
     public class Program
@@ -41,8 +53,8 @@ namespace Fake
         {
             [Value(0, Required = true, MetaName = "count", HelpText = "How many times I will say hello")]
             public int Count { get; set; }
-            [Option('f', "file" ,Required = false, MetaValue = "file", HelpText = "Input file to be processed")]
-            public string? InputFile {get; set;}
+            [Option('f', "file", Required = false, MetaValue = "file", HelpText = "Input file to be processed")]
+            public string? InputFile { get; set; }
         }
         public static void Main(string[] args)
         {
@@ -75,9 +87,10 @@ namespace Fake
         }
         public void Run(Options opt)
         {
-            Thread create = new (() => CreateFile(opt.Count));
-            if (!string.IsNullOrEmpty(opt.InputFile)) {
-                Thread process = new (() => ProcessFile(opt.InputFile));
+            Thread create = new(() => CreateFile(opt.Count));
+            if (!string.IsNullOrEmpty(opt.InputFile))
+            {
+                Thread process = new(() => ProcessFile(opt.InputFile));
                 process.Start();
             }
             create.Start();
@@ -94,18 +107,30 @@ namespace Fake
             Console.WriteLine("Done!");
         }
 
-        public void ProcessFile(string filename) {
-            Console.WriteLine($"Attempting to process file {filename}");
+        public void ProcessFile(string filename)
+        {
+            Console.WriteLine($"Attempting to parse json file {filename}");
             string path = Path.Combine(Environment.CurrentDirectory, filename);
-            try {
+            try
+            {
                 string content = File.ReadAllText(path);
-                Console.WriteLine($"Read content: {content}");
-            } catch (Exception e) {
+                AppInput ?res = JsonSerializer.Deserialize<AppInput>(content);
+                Console.WriteLine($"Read content: {res?.UserId}");
+                if (res?.Extra != null) {
+                    Console.WriteLine($"Found extra stuff");
+                    foreach (KeyValuePair<string, dynamic> pair in res.Extra) {
+                        Console.WriteLine($"{pair.Key} has {pair.Value}");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine($"An Error Occured: {e.Message}");
             }
         }
 
-        public void CreateFile(int num) {
+        public void CreateFile(int num)
+        {
             string path = Path.Combine(Environment.CurrentDirectory, "appoutput.txt");
             string content = $"LOG: Had to say hello {num} times.";
             File.WriteAllText(path, content);
